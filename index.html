@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Shimu</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #fff0f8;
+    min-height: 100dvh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+  }
+
+  #app {
+    width: 100%;
+    max-width: 420px;
+    min-height: 100dvh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 20px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* DOTS NAV */
+  .dots {
+    position: fixed;
+    bottom: 22px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 7px;
+    z-index: 10;
+  }
+  .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #fce7f3;
+    transition: background 0.3s, transform 0.3s;
+  }
+  .dot.active { background: #f472b6; transform: scale(1.3); }
+
+  /* SCREENS */
+  .screen {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    width: 100%;
+    animation: fadeSlide 0.55s cubic-bezier(.22,.68,0,1.2);
+  }
+  .screen.active { display: flex; }
+  @keyframes fadeSlide {
+    from { opacity: 0; transform: translateY(22px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  /* COMMON */
+  .big-emoji {
+    font-size: clamp(56px, 16vw, 72px);
+    margin-bottom: 14px;
+    display: block;
+    animation: float 2.4s ease-in-out infinite;
+  }
+  @keyframes float {
+    0%,100% { transform: translateY(0); }
+    50%      { transform: translateY(-10px); }
+  }
+
+  h1 {
+    font-size: clamp(19px, 5.5vw, 23px);
+    font-weight: 600;
+    color: #831843;
+    margin-bottom: 8px;
+    line-height: 1.3;
+  }
+  p.sub {
+    font-size: clamp(13px, 3.8vw, 15px);
+    color: #be185d;
+    line-height: 1.65;
+    margin-bottom: 20px;
+  }
+
+  .btn {
+    background: #f472b6;
+    color: #fff;
+    border: none;
+    border-radius: 50px;
+    padding: 13px 34px;
+    font-size: clamp(14px, 4vw, 16px);
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.15s, background 0.2s, box-shadow 0.2s;
+    box-shadow: 0 4px 18px rgba(244,114,182,0.35);
+    touch-action: manipulation;
+  }
+  .btn:hover  { background: #ec4899; }
+  .btn:active { transform: scale(0.96); box-shadow: none; }
+
+  /* SCREEN 0 — envelope */
+  #s0 .envelope {
+    font-size: clamp(64px, 18vw, 80px);
+    animation: pulse 1.8s ease-in-out infinite;
+    margin-bottom: 16px;
+    display: block;
+  }
+  @keyframes pulse {
+    0%,100% { transform: scale(1); }
+    50%      { transform: scale(1.08); }
+  }
+
+  /* SCREEN 1 — progress */
+  .progress-wrap {
+    width: 100%;
+    background: #fce7f3;
+    border-radius: 50px;
+    height: 20px;
+    overflow: hidden;
+    margin: 16px 0 8px;
+    box-shadow: inset 0 1px 4px rgba(244,114,182,0.15);
+  }
+  .progress-bar {
+    height: 100%;
+    border-radius: 50px;
+    background: linear-gradient(90deg, #f9a8d4, #f472b6, #e879f9);
+    width: 0%;
+    transition: width 0.05s linear;
+  }
+  .progress-label {
+    font-size: clamp(12px, 3.5vw, 13px);
+    color: #be185d;
+    font-weight: 500;
+    min-height: 20px;
+  }
+
+  /* SCREEN 2 — age reveal */
+  .age-num {
+    font-size: clamp(72px, 22vw, 96px);
+    font-weight: 700;
+    color: #ec4899;
+    line-height: 1;
+    animation: popBig 0.55s cubic-bezier(.22,.68,0,1.3);
+    margin: 8px 0 4px;
+  }
+  @keyframes popBig {
+    0%   { transform: scale(0); opacity: 0; }
+    60%  { transform: scale(1.25); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  .stars-row {
+    display: flex; gap: 8px; justify-content: center;
+    flex-wrap: wrap; margin: 14px 0;
+  }
+  .star {
+    font-size: 26px;
+    opacity: 0; transform: scale(0);
+    animation: popStar 0.4s forwards;
+  }
+  @keyframes popStar {
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  /* SCREEN 3 — traits */
+  .trait-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    width: 100%;
+    margin: 14px 0 18px;
+  }
+  .trait-card {
+    background: #fff;
+    border: 1.5px solid #fce7f3;
+    border-radius: 16px;
+    padding: 13px 12px;
+    text-align: left;
+    opacity: 0; transform: translateY(14px);
+    animation: slideUp 0.4s forwards;
+  }
+  @keyframes slideUp { to { opacity:1; transform:translateY(0); } }
+  .trait-card .tc-icon { font-size: 24px; margin-bottom: 5px; }
+  .trait-card .tc-label { font-size: clamp(12px,3.5vw,13px); font-weight: 600; color: #831843; }
+  .trait-card .tc-desc  { font-size: clamp(11px,3vw,12px); color: #be185d; margin-top: 3px; line-height: 1.45; }
+
+  /* SCREEN 4 — wish */
+  .wish-box {
+    background: #fff;
+    border: 2px solid #f9a8d4;
+    border-radius: 20px;
+    padding: 18px 18px 14px;
+    margin: 12px 0 16px;
+    text-align: left;
+    position: relative;
+  }
+  .wish-box::before {
+    content: '💌';
+    position: absolute;
+    top: -16px; left: 50%;
+    transform: translateX(-50%);
+    font-size: 28px;
+    background: #fff0f8;
+    padding: 0 6px;
+  }
+  .wish-text {
+    font-size: clamp(13px, 3.8vw, 14px);
+    color: #9d174d;
+    line-height: 1.75;
+  }
+  .wish-from {
+    font-size: clamp(12px, 3.3vw, 13px);
+    color: #be185d;
+    font-weight: 600;
+    margin-top: 12px;
+    text-align: right;
+  }
+
+  /* SCREEN 5 — finale */
+  .tags { display: flex; flex-wrap: wrap; gap: 7px; justify-content: center; margin: 12px 0 16px; }
+  .tag {
+    background: #fce7f3;
+    color: #9d174d;
+    border-radius: 50px;
+    padding: 6px 14px;
+    font-size: clamp(12px, 3.5vw, 13px);
+    font-weight: 600;
+  }
+
+  /* CONFETTI */
+  .confetti-piece {
+    position: fixed;
+    width: 9px; height: 9px;
+    border-radius: 2px;
+    animation: fall linear forwards;
+    pointer-events: none;
+    z-index: 100;
+  }
+  @keyframes fall {
+    0%   { transform: translateY(-30px) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(110dvh) rotate(700deg); opacity: 0; }
+  }
+
+  /* BALLOONS */
+  .balloon {
+    position: fixed;
+    font-size: clamp(34px, 10vw, 44px);
+    animation: floatUp 4s ease-in forwards;
+    pointer-events: none;
+    z-index: 99;
+  }
+  @keyframes floatUp {
+    0%   { transform: translateY(80px); opacity: 0.9; }
+    100% { transform: translateY(-120dvh); opacity: 0; }
+  }
+
+  /* BG decoration */
+  .bg-circles {
+    position: fixed; inset: 0;
+    pointer-events: none; z-index: 0;
+    overflow: hidden;
+  }
+  .bg-circles span {
+    position: absolute;
+    border-radius: 50%;
+    opacity: 0.18;
+    animation: drift 8s ease-in-out infinite alternate;
+  }
+  @keyframes drift {
+    from { transform: translate(0, 0); }
+    to   { transform: translate(12px, 16px); }
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-circles">
+  <span style="width:180px;height:180px;background:#f9a8d4;top:-60px;left:-60px;animation-delay:0s"></span>
+  <span style="width:120px;height:120px;background:#e879f9;bottom:-40px;right:-30px;animation-delay:2s"></span>
+  <span style="width:80px;height:80px;background:#fbbf24;top:40%;left:-20px;animation-delay:4s"></span>
+  <span style="width:60px;height:60px;background:#60a5fa;top:20%;right:-10px;animation-delay:1s"></span>
+</div>
+
+<div id="app">
+
+  <!-- S0: Envelope -->
+  <div class="screen active" id="s0">
+    <span class="envelope">💌</span>
+    <h1>Psst… someone left<br>you a little message</h1>
+    <p class="sub">Ready to see it? 🌸</p>
+    <button class="btn" onclick="goTo(1)">Open it 🎀</button>
+  </div>
+
+  <!-- S1: Loading bar -->
+  <div class="screen" id="s1">
+    <span class="big-emoji">🌸</span>
+    <h1>Loading someone<br>very special…</h1>
+    <div class="progress-wrap"><div class="progress-bar" id="pbar"></div></div>
+    <div class="progress-label" id="plabel">Starting up… 🌸</div>
+    <p class="sub" style="margin-top:12px; margin-bottom:0; font-size:12px;">Please wait!!!</p>
+  </div>
+
+  <!-- S2: Age reveal -->
+  <div class="screen" id="s2">
+    <p style="font-size:clamp(15px,4.5vw,17px); color:#be185d; font-weight:600; margin-bottom:4px;">Loading complete!</p>
+    <div class="age-num">24</div>
+    <p class="sub" style="margin-bottom:4px;">years of being the most wonderful Shimu 💗</p>
+    <div class="stars-row" id="stars"></div>
+    <button class="btn" onclick="goTo(3)" style="margin-top:8px;">And?</button>
+  </div>
+
+  <!-- S3: Traits -->
+  <div class="screen" id="s3">
+    <span class="big-emoji" style="font-size:clamp(44px,12vw,56px); margin-bottom:8px;">🌻</span>
+    <h1>A few things that make<br>Shimu, Shimu</h1>
+    <div class="trait-grid">
+      <div class="trait-card" style="animation-delay:0.1s">
+        <div class="tc-icon">🌷</div>
+        <div class="tc-label">Soft-hearted</div>
+        <div class="tc-desc">Feels deeply, loves quietly</div>
+      </div>
+      <div class="trait-card" style="animation-delay:0.22s">
+        <div class="tc-icon">💫</div>
+        <div class="tc-label">Sensitive soul</div>
+        <div class="tc-desc">The world hits different when you feel everything</div>
+      </div>
+      <div class="trait-card" style="animation-delay:0.34s">
+        <div class="tc-icon">🐾</div>
+        <div class="tc-label">Tiny temper</div>
+        <div class="tc-desc">Mad fast, forgives even faster 🤭</div>
+      </div>
+      <div class="trait-card" style="animation-delay:0.46s">
+        <div class="tc-icon">🌼</div>
+        <div class="tc-label">Kind heart</div>
+        <div class="tc-desc">Sprinkles kindness without even trying</div>
+      </div>
+    </div>
+    <button class="btn" onclick="goTo(4)">There's more...</button>
+  </div>
+
+  <!-- S4: Wish -->
+  <div class="screen" id="s4">
+    <div class="wish-box">
+      <div class="wish-text">
+        Happy birthday, Shimu!<br><br>
+        I always pray that all your dreams come true and may your life filled with happy moments and blessings from Allah💗
+      </div>
+      <div class="wish-from">— Your best friend</div>
+    </div>
+    <button class="btn" onclick="goTo(5)">One last thing…</button>
+  </div>
+
+  <!-- S5: Finale -->
+  <div class="screen" id="s5">
+    <span style="font-size:clamp(60px,18vw,80px); display:block; animation:float 0.8s ease-in-out infinite; margin-bottom:10px;">🎉</span>
+    <h1 style="font-size:clamp(22px,6.5vw,28px); color:#ec4899;">Happy Birthday<br>Shimu! 🎂</h1>
+  </div>
+
+</div>
+
+<!-- Dots -->
+<div class="dots" id="dots">
+  <div class="dot active"></div>
+  <div class="dot"></div>
+  <div class="dot"></div>
+  <div class="dot"></div>
+  <div class="dot"></div>
+  <div class="dot"></div>
+</div>
+
+<script>
+  let current = 0;
+  const COLORS = ['#f472b6','#fb923c','#facc15','#4ade80','#60a5fa','#e879f9','#f87171','#34d399','#fbbf24'];
+
+  function goTo(n) {
+    document.getElementById('s' + current).classList.remove('active');
+    current = n;
+    document.getElementById('s' + current).classList.add('active');
+    updateDots();
+    if (n === 1) startProgress();
+    if (n === 2) { buildStars(); launchConfetti(55); launchBalloons(5); }
+    if (n === 5) { launchConfetti(90); launchBalloons(7); }
+  }
+
+  function restart() { goTo(0); }
+
+  function updateDots() {
+    document.querySelectorAll('.dot').forEach((d, i) => {
+      d.classList.toggle('active', i === current);
+    });
+  }
+
+  function startProgress() {
+    let val = 0;
+    const bar    = document.getElementById('pbar');
+    const label  = document.getElementById('plabel');
+    const steps  = [
+      [0,  4,  '1 year...'],
+      [4,  8,  '5 years...'],
+      [8,  13, '10 years...'],
+      [13, 18, '18 years...'],
+      [18, 22, '23 years...💗'],
+      [22, 23.5,'Aaannnddddd✨'],
+    ];
+    const iv = setInterval(() => {
+      val += 0.35;
+      bar.style.width = Math.min(val / 24 * 100, 100) + '%';
+      for (const [a, b, msg] of steps) {
+        if (val >= a && val < b) { label.textContent = msg; break; }
+      }
+      if (val >= 24) {
+        clearInterval(iv);
+        label.textContent = 'its 2026 so.....';
+        setTimeout(() => goTo(2), 700);
+      }
+    }, 90);
+  }
+
+  function buildStars() {
+    const wrap = document.getElementById('stars');
+    wrap.innerHTML = '';
+    ['⭐','🌸','💖','🌟','✨','🦋','🌺','💫'].forEach((e, i) => {
+      const s = document.createElement('span');
+      s.className = 'star';
+      s.textContent = e;
+      s.style.animationDelay = (i * 0.09) + 's';
+      wrap.appendChild(s);
+    });
+  }
+
+  function launchConfetti(count) {
+    for (let i = 0; i < count; i++) {
+      const c = document.createElement('div');
+      c.className = 'confetti-piece';
+      c.style.cssText = `
+        left:${Math.random()*100}vw;
+        top:0;
+        background:${COLORS[Math.floor(Math.random()*COLORS.length)]};
+        animation-duration:${1.6 + Math.random()*2}s;
+        animation-delay:${Math.random()*1.2}s;
+        border-radius:${Math.random()>0.5?'50%':'3px'};
+        width:${7+Math.random()*7}px;
+        height:${7+Math.random()*7}px;
+      `;
+      document.body.appendChild(c);
+      setTimeout(() => c.remove(), 4500);
+    }
+  }
+
+  function launchBalloons(count) {
+    const emojis = ['🎈','🎉','🎊','🎀','🌸','💖'];
+    for (let i = 0; i < count; i++) {
+      const b = document.createElement('div');
+      b.className = 'balloon';
+      b.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+      b.style.cssText = `
+        left:${8 + Math.random()*84}vw;
+        bottom:-60px;
+        animation-delay:${Math.random()*1.8}s;
+        animation-duration:${3.2+Math.random()*2}s;
+      `;
+      document.body.appendChild(b);
+      setTimeout(() => b.remove(), 7000);
+    }
+  }
+</script>
+</body>
+</html>
